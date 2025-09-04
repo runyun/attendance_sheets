@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>點名</title>
+<style>
+  body { font-family: sans-serif; margin: 10px; }
+  h2 { margin-top: 20px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 15px; }
+  button { flex: 1; padding: 12px; font-size: 16px; border-radius: 5px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .person {
+    padding: 10px; 
+    text-align: center; 
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+    cursor: pointer;
+    user-select: none;
+  }
+  .person.active { background: #8fdb8f; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button onclick="showAddModal()">新增</button>
+  <button onclick="showEditModal()">編輯</button>
+  <button onclick="deleteSelected()">刪除</button>
+  <button onclick="exportList()">輸出</button>
+</div>
+
+<h2>成員</h2>
+<div id="members" class="grid"></div>
+
+<h2>訪客</h2>
+<div id="guests" class="grid"></div>
+
+<!-- 新增 Modal -->
+<div id="addModal" style="display:none;">
+  <h3>新增人員</h3>
+  <textarea id="addNames" rows="6" style="width:100%;"></textarea><br>
+  <button onclick="addPeople('成員')">新增成員</button>
+  <button onclick="addPeople('訪客')">新增訪客</button>
+  <button onclick="closeModal('addModal')">關閉</button>
+</div>
+
+<!-- 編輯 Modal -->
+<div id="editModal" style="display:none;">
+  <h3>編輯人員</h3>
+  <input id="editName" placeholder="名字"><br><br>
+  <select id="editType">
+    <option value="成員">成員</option>
+    <option value="訪客">訪客</option>
+  </select><br><br>
+  <button onclick="saveEdit()">儲存</button>
+  <button onclick="closeModal('editModal')">關閉</button>
+</div>
+
+<script>
+let people = []; // 全部資料
+let selectedId = null;
+let idCounter = 1;
+
+function saveData(){
+  localStorage.setItem("peopleData", JSON.stringify({people, idCounter}));
+}
+
+function loadData(){
+  let data = localStorage.getItem("peopleData");
+  if(data){
+    let parsed = JSON.parse(data);
+    people = parsed.people || [];
+    idCounter = parsed.idCounter || 1;
+  }
+}
+
+function render() {
+  let members = people.filter(p=>p.type==="成員").sort(sorter);
+  let guests  = people.filter(p=>p.type==="訪客").sort(sorter);
+
+  document.getElementById("members").innerHTML = members.map(p=>renderPerson(p)).join("");
+  document.getElementById("guests").innerHTML  = guests.map(p=>renderPerson(p)).join("");
+  saveData();
+}
+
+function sorter(a,b){
+  if(b.count !== a.count) return b.count - a.count;
+  return a.id - b.id;
+}
+
+function renderPerson(p){
+  return `<div class="person ${p.active?'active':''}" 
+              onclick="toggleActive(${p.id})"
+              ondblclick="selectForEdit(${p.id})">
+            ${p.name}
+          </div>`;
+}
+
+function toggleActive(id){
+  let person = people.find(p=>p.id===id);
+  person.active = !person.active;
+  render();
+}
+
+function selectForEdit(id){
+  selectedId = id;
+  let p = people.find(x=>x.id===id);
+  document.getElementById("editName").value = p.name;
+  document.getElementById("editType").value = p.type;
+  showEditModal();
+}
+
+function showAddModal(){ document.getElementById("addModal").style.display="block"; }
+function showEditModal(){ 
+  if(selectedId){ 
+    document.getElementById("editModal").style.display="block"; 
+  } else {
+    alert("請先雙擊一個人選擇編輯");
+  }
+}
+function closeModal(id){ document.getElementById(id).style.display="none"; }
+
+function addPeople(type){
+  let names = document.getElementById("addNames").value.trim().split("\n");
+  names.forEach(name=>{
+    if(name){
+      people.push({id:idCounter++, name:name.trim(), count:0, type:type, active:false});
+    }
+  });
+  document.getElementById("addNames").value="";
+  closeModal("addModal");
+  render();
+}
+
+function saveEdit(){
+  if(selectedId){
+    let p = people.find(x=>x.id===selectedId);
+    p.name = document.getElementById("editName").value.trim();
+    p.type = document.getElementById("editType").value;
+    closeModal("editModal");
+    render();
+  }
+}
+
+function deleteSelected(){
+  if(selectedId){
+    people = people.filter(p=>p.id!==selectedId);
+    selectedId=null;
+    render();
+  } else {
+    alert("請先雙擊一個人再刪除");
+  }
+}
+
+function exportList(){
+  let activePeople = people.filter(p=>p.active);
+  activePeople.forEach(p=>{p.count++; p.active=false;});
+
+  // 取得今天日期 (M/D)
+  let today = new Date();
+  let dateStr = (today.getMonth()+1) + "/" + today.getDate();
+
+  let text = dateStr + "\n" + activePeople.map(p=>p.name).join("\n");
+
+  navigator.clipboard.writeText(text).then(()=>{
+    alert("已複製到剪貼簿:\n"+text);
+    render();
+  });
+}
+
+
+// 初始化
+loadData();
+render();
+</script>
+</body>
+</html>
