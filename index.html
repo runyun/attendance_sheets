@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>點名</title>
 <style>
-  body { font-family: sans-serif; margin: 10px; }
+  body { font-family: sans-serif; margin: 10px; background-color: #1B263B; color:#E0E1DD; font-weight: bolder;}
   h2 { margin-top: 20px; }
   .toolbar { display: flex; gap: 10px; margin-bottom: 15px; }
-  button { flex: 1; padding: 12px; font-size: 16px; border-radius: 5px; }
-  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  button { flex: 1; padding: 12px; font-size: 16px; border-radius: 5px; background-color: #7798AB;}
+  .grid { display: grid; grid-template-columns: repeat( 4, 1fr); gap: 8px; }
   .person {
     padding: 10px; 
     text-align: center; 
     border: 1px solid #ccc;
     border-radius: 5px;
-    background: #f9f9f9;
+    background: #1B263B;
     cursor: pointer;
     user-select: none;
   }
-  .person.active { background: #8fdb8f; }
+  .person.active { background: #C3DBC5; color:black}
 </style>
 </head>
 <body>
@@ -29,6 +29,7 @@
   <button onclick="showEditModal()">編輯</button>
   <button onclick="deleteSelected()">刪除</button>
   <button onclick="exportList()">輸出</button>
+  <button onclick="deleteAll()">刪除全部</button>
 </div>
 
 <h2>成員</h2>
@@ -170,6 +171,14 @@ function exportList(){
   });
 }
 
+function deleteAll(){
+  if(confirm("確定要刪除全部人員嗎？這個動作無法復原！")){
+    people = [];
+    idCounter = 1;
+    localStorage.removeItem("peopleData");
+    render();
+  }
+};
 
 // 初始化
 loadData();
