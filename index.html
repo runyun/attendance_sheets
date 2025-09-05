@@ -21,7 +21,7 @@
       font-family: "Potta One", system-ui, sans-serif;
     }
     .toolbar { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
-    button { padding: 12px; font-size: 16px; border-radius: 5px; background-color: #7798AB; color:black; cursor: pointer;}
+    button { padding: 12px; font-size: 16px; border-style: none ; border-radius: 5px; background-color: #7798AB; color:black; cursor: pointer;}
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
     .person {
     position: relative;
@@ -59,10 +59,10 @@
 
 <div class="toolbar">
   <button onclick="showAddModal()">新增</button>
-  <button onclick="clearAll()" style="background-color:#f44336; color:white;">刪除全部</button>
   <button onclick="clearSelection()">清除選取</button>
+  <button onclick="clearAll()" style="background-color: darkred; color: rgb(211, 200, 200);">刪除全部</button>
+  <button onclick="clearHistory()">整理出席</button>
   <button onclick="exportList()" style="grid-column: span 2;">輸出</button>
-  <button onclick="clearHistory()">清除紀錄</button>
 </div>
 
 <h2>成員</h2>
@@ -77,9 +77,21 @@
     <h3>新增人員</h3>
     <textarea id="addNames" rows="6" style="width:100%;"></textarea><br>
     <label>
-      <input type="checkbox" id="defaultActive" checked>
+      <input type="radio" name="defaultActive" value="today" checked>
       預設為積極 (加入今天的出席紀錄)
-    </label><br><br>
+    </label>
+    <br>
+    <label>
+      <input type="radio" name="defaultActive" value="yesterday">
+      預設為積極 (加入昨天的出席紀錄)
+    </label>
+    <br>
+    <label>
+      <input type="radio" name="defaultActive" value="none">
+      不自動加入出席紀錄
+    </label>
+    <br>
+    <br>
     <button onclick="addPeople('成員')">新增成員</button>
     <button onclick="addPeople('訪客')">新增訪客</button>
     <button onclick="closeModal('addModalBg')">關閉</button>
