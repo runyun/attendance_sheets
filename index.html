@@ -13,18 +13,18 @@
         background-color: #1B263B;
         color: #E0E1DD;
     }
-
-    body button {
+    body button{
         font-family: "Potta One", system-ui, sans-serif;
-        font-weight: 400;  
-        font-style: normal;
     }
-
-  h2 { margin-top: 20px; }
-  .toolbar { display: flex; gap: 10px; margin-bottom: 15px; }
-  button { flex: 1; padding: 12px; font-size: 16px; border-radius: 5px; background-color: #7798AB; color:black}
-  .grid { display: grid; grid-template-columns: repeat( 4, 1fr); gap: 8px; }
-  .person {
+    h2 { 
+      margin-top: 20px; 
+      font-family: "Potta One", system-ui, sans-serif;
+    }
+    .toolbar { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; }
+    button { padding: 12px; font-size: 16px; border-radius: 5px; background-color: #7798AB; color:black; cursor: pointer;}
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .person {
+    position: relative;
     padding: 10px; 
     text-align: center; 
     border: 1px solid #ccc;
@@ -33,20 +33,36 @@
     cursor: pointer;
     user-select: none;
     font-family: "Potta One", system-ui, sans-serif;
-    font-weight: 400;  
-    font-style: normal;
-  }
-  .person.active { background: #C3DBC5; color:black}
+    }
+    .person.active { background: #C3DBC5; color:black }
+    /* 紅點 */
+    .dot {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 10px;
+      height: 10px;
+      background: red;
+      border-radius: 50%;
+    }
+    /* Modal */
+    .modal-bg {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center;
+    }
+    .modal {
+      background:#fff; color:black; padding:20px; border-radius:10px; width:300px;
+    }
 </style>
 </head>
 <body>
 
 <div class="toolbar">
   <button onclick="showAddModal()">新增</button>
-  <button onclick="showEditModal()">編輯</button>
-  <button onclick="deleteSelected()">刪除</button>
-  <button onclick="exportList()">輸出</button>
-  <button onclick="deleteAll()">刪除全部</button>
+  <button onclick="clearAll()" style="background-color:#f44336; color:white;">刪除全部</button>
+  <button onclick="clearSelection()">清除選取</button>
+  <button onclick="exportList()" style="grid-column: span 2;">輸出</button>
+  <button onclick="clearHistory()">清除歷史紀錄</button>
 </div>
 
 <h2>成員</h2>
@@ -56,35 +72,49 @@
 <div id="guests" class="grid"></div>
 
 <!-- 新增 Modal -->
-<div id="addModal" style="display:none;">
-  <h3>新增人員</h3>
-  <textarea id="addNames" rows="6" style="width:100%;"></textarea><br>
-  <button onclick="addPeople('成員')">新增成員</button>
-  <button onclick="addPeople('訪客')">新增訪客</button>
-  <button onclick="closeModal('addModal')">關閉</button>
+<div id="addModalBg" class="modal-bg">
+  <div class="modal">
+    <h3>新增人員</h3>
+    <textarea id="addNames" rows="6" style="width:100%;"></textarea><br>
+    <label>
+      <input type="checkbox" id="defaultActive" checked>
+      預設為積極 (加入今天的出席紀錄)
+    </label><br><br>
+    <button onclick="addPeople('成員')">新增成員</button>
+    <button onclick="addPeople('訪客')">新增訪客</button>
+    <button onclick="closeModal('addModalBg')">關閉</button>
+  </div>
 </div>
 
+
 <!-- 編輯 Modal -->
-<div id="editModal" style="display:none;">
-  <h3>編輯人員</h3>
-  <input id="editName" placeholder="名字"><br><br>
-  <select id="editType">
-    <option value="成員">成員</option>
-    <option value="訪客">訪客</option>
-  </select><br><br>
-  <button onclick="saveEdit()">儲存</button>
-  <button onclick="closeModal('editModal')">關閉</button>
+<div id="editModalBg" class="modal-bg">
+  <div class="modal">
+    <h3>編輯人員</h3>
+    <input id="editName" placeholder="名字" style="width:100%;"><br><br>
+    <select id="editType" style="width:100%;">
+      <option value="成員">成員</option>
+      <option value="訪客">訪客</option>
+    </select><br><br>
+    <div>
+      <strong>出席紀錄:</strong>
+      <ul id="editDates" style="max-height:100px; overflow:auto; padding-left:20px;"></ul>
+    </div>
+    <br>
+    <button onclick="saveEdit()">儲存</button>
+    <button onclick="deleteSelected()">刪除</button>
+    <button onclick="closeModal('editModalBg')">關閉</button>
+  </div>
 </div>
 
 <script>
-let people = []; // 全部資料
+let people = []; 
 let selectedId = null;
 let idCounter = 1;
 
 function saveData(){
   localStorage.setItem("peopleData", JSON.stringify({people, idCounter}));
 }
-
 function loadData(){
   let data = localStorage.getItem("peopleData");
   if(data){
@@ -93,62 +123,62 @@ function loadData(){
     idCounter = parsed.idCounter || 1;
   }
 }
-
 function render() {
   let members = people.filter(p=>p.type==="成員").sort(sorter);
   let guests  = people.filter(p=>p.type==="訪客").sort(sorter);
-
   document.getElementById("members").innerHTML = members.map(p=>renderPerson(p)).join("");
   document.getElementById("guests").innerHTML  = guests.map(p=>renderPerson(p)).join("");
   saveData();
 }
-
 function sorter(a,b){
   if(b.count !== a.count) return b.count - a.count;
   return a.id - b.id;
 }
-
 function renderPerson(p){
   return `<div class="person ${p.active?'active':''}" 
               onclick="toggleActive(${p.id})"
               ondblclick="selectForEdit(${p.id})">
             ${p.name}
+            ${isActive(p) ? '<div class="dot"></div>' : ''}
           </div>`;
 }
-
 function toggleActive(id){
   let person = people.find(p=>p.id===id);
   person.active = !person.active;
   render();
 }
-
 function selectForEdit(id){
   selectedId = id;
   let p = people.find(x=>x.id===id);
   document.getElementById("editName").value = p.name;
   document.getElementById("editType").value = p.type;
-  showEditModal();
+  let ul = document.getElementById("editDates");
+  ul.innerHTML = (p.dates||[]).map(d=>`<li>${d}</li>`).join("");
+  document.getElementById("editModalBg").style.display="flex";
 }
-
-function showAddModal(){ document.getElementById("addModal").style.display="block"; }
-function showEditModal(){ 
-  if(selectedId){ 
-    document.getElementById("editModal").style.display="block"; 
-  } else {
-    alert("請先雙擊一個人選擇編輯");
-  }
-}
+function showAddModal(){ document.getElementById("addModalBg").style.display="flex"; }
 function closeModal(id){ document.getElementById(id).style.display="none"; }
-
 function addPeople(type){
   let names = document.getElementById("addNames").value.trim().split("\n");
+  let todayStr = getToday();
+  let makeActive = document.getElementById("defaultActive").checked;
+
   names.forEach(name=>{
     if(name){
-      people.push({id:idCounter++, name:name.trim(), count:0, type:type, active:false});
+      people.push({
+        id:idCounter++, 
+        name:name.trim(), 
+        count:0, 
+        type:type, 
+        active:false, 
+        dates: makeActive ? [todayStr] : []  // ← 有勾就加入今天日期
+      });
     }
   });
+
   document.getElementById("addNames").value="";
-  closeModal("addModal");
+  document.getElementById("defaultActive").checked=true; 
+  closeModal("addModalBg");
   render();
 }
 
@@ -157,30 +187,50 @@ function saveEdit(){
     let p = people.find(x=>x.id===selectedId);
     p.name = document.getElementById("editName").value.trim();
     p.type = document.getElementById("editType").value;
-    closeModal("editModal");
+    closeModal("editModalBg");
     render();
   }
 }
-
 function deleteSelected(){
   if(selectedId){
     people = people.filter(p=>p.id!==selectedId);
     selectedId=null;
+    closeModal("editModalBg");
     render();
   } else {
     alert("請先雙擊一個人再刪除");
   }
 }
-
+function clearSelection(){
+  people.forEach(p=>p.active=false);
+  render();
+}
 function exportList(){
-  let activePeople = people.filter(p=>p.active);
-  activePeople.forEach(p=>{p.count++; p.active=false;});
+  let todayStr = getToday();
+  let activePeople = people.filter(p=>p.active); // 今天有勾選
+  let allActiveIds = activePeople.map(p=>p.id);
 
-  // 取得今天日期 (M/D)
-  let today = new Date();
-  let dateStr = (today.getMonth()+1) + "/" + today.getDate();
+  // 出席處理
+  activePeople.forEach(p=>{
+    p.count++;
+    if(!p.dates) p.dates=[];
+    p.dates.push(todayStr);
+  });
 
-  let text = dateStr + "\n" + activePeople.map(p=>p.name).join("\n");
+  // 缺席但積極的人
+  let absentPeople = people.filter(p=>{
+    return !allActiveIds.includes(p.id) && isActive(p);
+  });
+
+  let text = todayStr + "\n";
+  console.log('people'+activePeople.length)
+  if(activePeople.length>0){
+    text += "出席:\n" + activePeople.map(p=>p.name).join("\n") + "\n\n";
+  }
+
+  if(absentPeople.length>0){
+    text += "缺席:\n" + absentPeople.map(p=>p.name).join("\n") + "\n";
+  }
 
   navigator.clipboard.writeText(text).then(()=>{
     alert("已複製到剪貼簿:\n"+text);
@@ -188,14 +238,56 @@ function exportList(){
   });
 }
 
-function deleteAll(){
-  if(confirm("確定要刪除全部人員嗎？這個動作無法復原！")){
-    people = [];
-    idCounter = 1;
-    localStorage.removeItem("peopleData");
+function clearHistory(){
+  if(confirm("僅保留最近三個月的出席紀錄，確定嗎？")){
+    let cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth()-3);
+    people.forEach(p=>{
+      if(p.dates){
+        p.dates = p.dates.filter(d=>{
+          return new Date(d) >= cutoff;
+        });
+      }
+    });
     render();
   }
-};
+}
+function getToday(){
+  let t = new Date();
+  return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
+}
+function isActive(person) {
+  if (!person.dates || person.dates.length === 0) return false;
+
+  let today = new Date();
+
+  // 上個月的範圍
+  let lastMonthFirst = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  let lastMonthLast = new Date(today.getFullYear(), today.getMonth(), 0);
+
+  // 這個月的範圍
+  let thisMonthFirst = new Date(today.getFullYear(), today.getMonth(), 1);
+  let thisMonthLast = today; // 只檢查到今天
+
+  let hasLastMonth = person.dates.some(d => {
+    let date = new Date(d);
+    return date >= lastMonthFirst && date <= lastMonthLast;
+  });
+
+  let hasThisMonth = person.dates.some(d => {
+    let date = new Date(d);
+    return date >= thisMonthFirst && date <= thisMonthLast;
+  });
+
+  return hasLastMonth || hasThisMonth;
+}
+function clearAll(){
+  if(confirm("確定要刪除所有人嗎？")) {
+    people = [];
+    saveData();
+    render();
+  }
+}
 
 // 初始化
 loadData();
