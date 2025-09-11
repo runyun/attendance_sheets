@@ -253,16 +253,25 @@ function showExportModal(){
 }
 
 function doExport(type){
-  let date=document.getElementById("exportDate").value;
-  let attendees=people.filter(p=>p.active).map(p=>p.name);
-  let absentees=people.filter(p=>!p.active).map(p=>p.name);
-  let txt="";
-  if(type==="all") txt=`${date}\n訪客數:${guestCount}\n\n出席:\n${attendees.join("\n")}\n\n缺席:\n${absentees.join("\n")}`;
-  else if(type==="attend") txt=`${date}\n訪客數:${guestCount}\n\n出席:\n${attendees.join("\n")}`;
-  else if(type==="absent") txt=`${date}\n訪客數:${guestCount}\n\n缺席:\n${absentees.join("\n")}`;
-  document.getElementById("exportResult").innerText=txt;
+  let date = document.getElementById("exportDate").value;
+  if(!date) { alert("請選擇日期"); return; }
+
+  // 根據選擇日期判斷出席 / 缺席
+  let attendees = people.filter(p => p.dates && p.dates.includes(date)).map(p => p.name);
+  let absentees = people.filter(p => !p.dates || !p.dates.includes(date)).map(p => p.name);
+
+  let txt = "";
+  if(type === "all") 
+    txt = `${date}\n訪客數:${guestCount}\n\n出席:\n${attendees.join("\n")}\n\n缺席:\n${absentees.join("\n")}`;
+  else if(type === "attend") 
+    txt = `${date}\n訪客數:${guestCount}\n\n出席:\n${attendees.join("\n")}`;
+  else if(type === "absent") 
+    txt = `${date}\n訪客數:${guestCount}\n\n缺席:\n${absentees.join("\n")}`;
+
+  document.getElementById("exportResult").innerText = txt;
   navigator.clipboard.writeText(txt);
 }
+
 
 function confirmAttendance(){
   let date=document.getElementById("exportDate").value;
