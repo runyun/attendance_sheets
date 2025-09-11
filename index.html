@@ -32,6 +32,20 @@
       text-align: center;
       font-size: x-large;
     }
+    .modal .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      background: none;
+      color: black;
+      cursor: pointer;
+    }
+    .modal {
+      position: relative; /* 讓 close-btn 可以定位 */
+    }
 </style>
 </head>
 <body>
@@ -59,19 +73,20 @@
 <!-- 新增 Modal -->
 <div id="addModalBg" class="modal-bg">
   <div class="modal">
+    <button class="close-btn" onclick="closeModal('addModalBg')">x</button>
     <h3>新增人員</h3>
     <textarea id="addNames" rows="6" style="width:100%;"></textarea><br>
     <label><input type="radio" name="defaultActive" value="today" checked> 預設為積極 (加入今天的出席紀錄)</label><br>
     <label><input type="radio" name="defaultActive" value="yesterday"> 預設為積極 (加入昨天的出席紀錄)</label><br>
     <label><input type="radio" name="defaultActive" value="none"> 不自動加入出席紀錄</label><br><br>
     <button onclick="addPeople()">新增</button>
-    <button onclick="closeModal('addModalBg')">關閉</button>
   </div>
 </div>
 
 <!-- 編輯 Modal -->
 <div id="editModalBg" class="modal-bg">
   <div class="modal">
+    <button class="close-btn" onclick="closeModal('editModalBg')">×</button>
     <h3>編輯人員</h3>
     <input id="editName" placeholder="名字" style="width:100%;"><br><br>
     <div><strong>出席紀錄:</strong>
@@ -79,13 +94,13 @@
     </div><br>
     <button onclick="saveEdit()">儲存</button>
     <button onclick="deleteSelected()">刪除</button>
-    <button onclick="closeModal('editModalBg')">關閉</button>
   </div>
 </div>
 
 <!-- 輸出 Modal -->
 <div id="exportModalBg" class="modal-bg">
   <div class="modal">
+    <button class="close-btn" onclick="closeModal('exportModalBg')">×</button>
     <h3>輸出</h3>
     <label>日期: <input type="date" id="exportDate"></label><br><br>
     <button onclick="doExport('all')">全部</button>
@@ -93,20 +108,19 @@
     <button onclick="doExport('absent')">缺席</button>
     <button onclick="confirmAttendance()">確認點名</button>
     <div id="exportResult" style="margin-top:10px; white-space:pre-wrap;"></div>
-    <button onclick="closeModal('exportModalBg')">關閉</button>
   </div>
 </div>
 
 <!-- 歷史 Modal -->
 <div id="historyModalBg" class="modal-bg">
   <div class="modal" style="width:90%; max-width:800px;">
+    <button class="close-btn" onclick="closeModal('historyModalBg')">×</button>
     <h3>歷史紀錄</h3>
     <label>開始: <input type="date" id="historyStart"></label>
     <label>結束: <input type="date" id="historyEnd"></label>
     <button onclick="generateHistory()">產生</button>
     <button onclick="exportHistoryJson()">匯出 JSON</button>
     <div id="historyTable"></div>
-    <button onclick="closeModal('historyModalBg')">關閉</button>
   </div>
 </div>
 
