@@ -338,17 +338,25 @@ function exportHistoryJson(){
   let start = document.getElementById("historyStart").value;
   let end = document.getElementById("historyEnd").value;
 
-  // 將成員整理
+  let startDate = new Date(start);
+  let endDate = new Date(end);
+
   let membersData = people
     .filter(p => p.type === "成員")
-    .map(p => ({
-      name: p.name,
-      dates: p.dates || []
-    }));
+    .map(p => {
+      let filteredDates = (p.dates || []).filter(d => {
+        let date = new Date(d);
+        return date >= startDate && date <= endDate;
+      });
+      return {
+        name: p.name,
+        dates: filteredDates
+      };
+    })
+    .filter(p => p.dates.length > 0)
+    .sort((a, b) => a.name.localeCompare(b.name, "zh-Hant"));
 
   let data = {
-    start,
-    end,
     people: membersData
   };
 
