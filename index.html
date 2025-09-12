@@ -147,6 +147,7 @@ function loadData(){
 function render(){
   let members = people.sort((a,b)=>b.count-a.count || a.id-b.id);
   document.getElementById("members").innerHTML = members.map(p=>renderPerson(p)).join("");
+  document.getElementById("guestCount").innerHTML = guestCount;
   
   saveData();
 }
@@ -243,7 +244,12 @@ function deleteSelected(){
   }else alert("請先雙擊一個人再刪除");
 }
 
-function clearSelection(){ people.forEach(p=>p.active=false); render(); }
+function clearSelection(){ 
+  people.forEach(p=>p.active=false);
+  guestCount = 0;
+  saveData();
+  render();
+}
 function clearAll(){ if(confirm("確定要刪除所有人嗎？")){ people=[]; saveData(); render(); } }
 
 function changeGuest(id,delta){
@@ -276,11 +282,11 @@ function doExport(type){
 
   let txt = "";
   if(type === "all") 
-    txt = `${date}\n訪客數:${guestCount}\n\n出席:\n${attendees.join("\n")}\n\n缺席:\n${absentees.join("\n")}`;
+    txt = `${date}\n訪客 ${guestCount} 人\n\n出席:\n${attendees.join("\n")}\n\n缺席:\n${absentees.join("\n")}`;
   else if(type === "attend") 
-    txt = `${date}\n訪客數:${guestCount}\n\n出席:\n${attendees.join("\n")}`;
+    txt = `${date}\n訪客 ${guestCount} 人\n\n出席:\n${attendees.join("\n")}`;
   else if(type === "absent") 
-    txt = `${date}\n訪客數:${guestCount}\n\n缺席:\n${absentees.join("\n")}`;
+    txt = `${date}\n訪客 ${guestCount} 人\n\n缺席:\n${absentees.join("\n")}`;
 
   document.getElementById("exportResult").innerText = txt;
   navigator.clipboard.writeText(txt);
