@@ -145,7 +145,7 @@ function loadData(){
 }
 
 function render(){
-  let members = people.sort((a,b)=>b.count-a.count || a.id-b.id);
+  let members = people.sort((a,b)=>b.dates.length-a.dates.length || a.id-b.id);
   document.getElementById("members").innerHTML = members.map(p=>renderPerson(p)).join("");
   document.getElementById("guestCount").innerHTML = guestCount;
   
